@@ -6,8 +6,31 @@
         xmlns:local="clr-namespace:OpenCVWorkingTest"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
-        <Image Name="ImageView"/>
+    <Window.Resources>
+        <Style TargetType="{x:Type TextBlock}" BasedOn="{StaticResource {x:Type TextBlock}}">
+            <Setter Property="FontSize" Value="16"/>
+        </Style>
+    </Window.Resources>
+    <Grid Background="DarkGray">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Image Grid.Column="1" Name="ImageView"/>
+
+        <StackPanel>
+        <StackPanel>
+            <TextBlock x:Name="FX"/>
+            <TextBlock x:Name="FY"/>
+            <TextBlock x:Name="FZ"/>
+        </StackPanel>
+
+        <StackPanel Margin="0,20">
+            <TextBlock x:Name="DX"/>
+            <TextBlock x:Name="DY"/>
+            <TextBlock x:Name="DZ"/>
+        </StackPanel>
+        </StackPanel>
         <Button Click="Button_Click" Width="100" Height="50" HorizontalAlignment="Right"
                 VerticalAlignment="Bottom"
                 Margin="10"/>
