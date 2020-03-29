@@ -54,7 +54,13 @@ namespace OpenCVWorkingTest
             try
             {
                 //Set up capture device
-                _capture = new VideoCapture(1);
+                _capture = new VideoCapture(Camera_Identifier);
+
+                _capture.SetCaptureProperty(CapProp.FrameWidth, 1280);
+                _capture.SetCaptureProperty(CapProp.FrameHeight, 720);
+
+                _capture.SetCaptureProperty(CapProp.FrameCount, 30);
+
                 _capture.ImageGrabbed += ProcessFrame;
             }
             catch (NullReferenceException excpt)
@@ -211,87 +217,84 @@ namespace OpenCVWorkingTest
             //GenarateChessbosard();
 
             //var image = new Mat(@"calib.io_checker_200x150_8x11_15_cut.jpg");
-            var image = new Mat(@"d:\tmp\chessboard_3dsmax.bmp");
+            //var image = new Mat(@"d:\tmp\chessboard_3dsmax.bmp");
             
-            var gray_image = new Mat();
+            //var gray_image = new Mat();
 
-            CvInvoke.CvtColor(image, gray_image, ColorConversion.Bgr2Gray);
-                        CvInvoke.Imwrite(@"c:\tmp\output.jpg", gray_image);
+            //CvInvoke.CvtColor(image, gray_image, ColorConversion.Bgr2Gray);
+            //            CvInvoke.Imwrite(@"c:\tmp\output.jpg", gray_image);
             
-            var patternSize = new System.Drawing.Size(9, 9);
-            var corners = new VectorOfPointF();
+            //var patternSize = new System.Drawing.Size(9, 9);
+            //var corners = new VectorOfPointF();
 
-            bool result = CvInvoke.FindChessboardCorners(gray_image, patternSize, corners);
+            //bool result = CvInvoke.FindChessboardCorners(gray_image, patternSize, corners);
 
-            CvInvoke.CornerSubPix(gray_image, corners, patternSize, new System.Drawing.Size(-1, -1), new MCvTermCriteria(30, 0.1));
+            //CvInvoke.CornerSubPix(gray_image, corners, patternSize, new System.Drawing.Size(-1, -1), new MCvTermCriteria(30, 0.1));
 
-            CvInvoke.DrawChessboardCorners(image, patternSize, corners, result);
-
-
+            //CvInvoke.DrawChessboardCorners(image, patternSize, corners, result);
 
 
-            var objectList = new List<MCvPoint3D32f>();
-
-            for (int i = 0; i < patternSize.Height; i++)
-                for (int j = 0; j < patternSize.Width; j++)
-                {
-                    objectList.Add(new MCvPoint3D32f(j * _squareSize, i * _squareSize, 0.0F));
-                }
 
 
-            var cmat = new double[,]{
-            {1.0, .0, .0},
-            {.0,  1.0, .0},
-            {.0,  .0, 1.0}
-            };
+            //var objectList = new List<MCvPoint3D32f>();
 
-            //var ortho = Matrix4x4.Ortho(-4, 4, -2, 2, 1, 100);
-
-            for (int r = 0; r < 3; r++)
-                for (int c = 0; c < 3; c++)
-                    _cameraMatrix.SetValue(r, c, cmat[r, c]);
-
-            Mat _rvecs, _tvecs;
-            Mat[] _rvecs1, _tvecs1;
-
-            for (int i = 0; i < 8; i++)
-                _distCoeffs.SetValue(i, 0, 0);
-
-            _rvecs = new Mat(3, 1, DepthType.Cv64F, 1);
-            _tvecs = new Mat(3, 1, DepthType.Cv64F, 1);
+            //for (int i = 0; i < patternSize.Height; i++)
+            //    for (int j = 0; j < patternSize.Width; j++)
+            //    {
+            //        objectList.Add(new MCvPoint3D32f(j * _squareSize, i * _squareSize, 0.0F));
+            //    }
 
 
-            MCvPoint3D32f[][] _cornersObjectList = new MCvPoint3D32f[1][];
-            _cornersObjectList[0] = objectList.ToArray();
-            PointF[][] _cornersPointsList = new PointF[1][];
-            _cornersPointsList[0] = corners.ToArray();
+            //var cmat = new double[,]{
+            //{1.0, .0, .0},
+            //{.0,  1.0, .0},
+            //{.0,  .0, 1.0}
+            //};
+
+            ////var ortho = Matrix4x4.Ortho(-4, 4, -2, 2, 1, 100);
+
+            //for (int r = 0; r < 3; r++)
+            //    for (int c = 0; c < 3; c++)
+            //        _cameraMatrix.SetValue(r, c, cmat[r, c]);
+
+            //Mat _rvecs, _tvecs;
+            //Mat[] _rvecs1, _tvecs1;
+
+            //for (int i = 0; i < 8; i++)
+            //    _distCoeffs.SetValue(i, 0, 0);
+
+            //_rvecs = new Mat(3, 1, DepthType.Cv64F, 1);
+            //_tvecs = new Mat(3, 1, DepthType.Cv64F, 1);
 
 
-            CvInvoke.CalibrateCamera(_cornersObjectList, _cornersPointsList, gray_image.Size, _cameraMatrix, _distCoeffs
-                , CalibType.RationalModel, new MCvTermCriteria(30, 0.1), out _rvecs1, out _tvecs1);
-
-            for (int i = 0; i < 8; i++)
-                _distCoeffs.SetValue(i, 0, 0);
-
-
-            CvInvoke.SolvePnP(_cornersObjectList[0], _cornersPointsList[0], _cameraMatrix, _distCoeffs, _rvecs, _tvecs);
-
-            var rmat = new Mat(3, 3, DepthType.Cv32F, 1);
-            CvInvoke.Rodrigues(_rvecs, rmat);
-
-            var Fx = Math.Atan2(rmat.GetValue(2, 1), rmat.GetValue(2, 2)) * 57.295779513;
-            var Fy = Math.Atan2(-rmat.GetValue(2, 0), Math.Sqrt(rmat.GetValue(2, 1) * rmat.GetValue(2, 1) + rmat.GetValue(2, 2) * rmat.GetValue(2, 2))) * 57.295779513;
-            var Fz = Math.Atan2(rmat.GetValue(1, 0), rmat.GetValue(0, 0)) * 57.295779513;
-
-            //CvInvoke.CalibrateCamera(objectsPoints, imagePoints, gray_image.Size, _cameraMatrix, _distCoeffs, _rvecs, _tvecs
-            //    , CalibType.RationalModel, new MCvTermCriteria(30, 0.1));
-
-            var undist_image = new Mat();
-
-            CvInvoke.Undistort(image, undist_image, _cameraMatrix, _distCoeffs);
+            //MCvPoint3D32f[][] _cornersObjectList = new MCvPoint3D32f[1][];
+            //_cornersObjectList[0] = objectList.ToArray();
+            //PointF[][] _cornersPointsList = new PointF[1][];
+            //_cornersPointsList[0] = corners.ToArray();
 
 
-            ImageView.Source = GetImageSource(undist_image.ToBitmap(), image.Width, image.Height);
+            //CvInvoke.CalibrateCamera(_cornersObjectList, _cornersPointsList, gray_image.Size, _cameraMatrix, _distCoeffs
+            //    , CalibType.RationalModel, new MCvTermCriteria(30, 0.1), out _rvecs1, out _tvecs1);
+
+            //for (int i = 0; i < 8; i++)
+            //    _distCoeffs.SetValue(i, 0, 0);
+
+
+            //CvInvoke.SolvePnP(_cornersObjectList[0], _cornersPointsList[0], _cameraMatrix, _distCoeffs, _rvecs, _tvecs);
+
+            //var rmat = new Mat(3, 3, DepthType.Cv32F, 1);
+            //CvInvoke.Rodrigues(_rvecs, rmat);
+
+            //var Fx = Math.Atan2(rmat.GetValue(2, 1), rmat.GetValue(2, 2)) * 57.295779513;
+            //var Fy = Math.Atan2(-rmat.GetValue(2, 0), Math.Sqrt(rmat.GetValue(2, 1) * rmat.GetValue(2, 1) + rmat.GetValue(2, 2) * rmat.GetValue(2, 2))) * 57.295779513;
+            //var Fz = Math.Atan2(rmat.GetValue(1, 0), rmat.GetValue(0, 0)) * 57.295779513;
+
+            ////CvInvoke.CalibrateCamera(objectsPoints, imagePoints, gray_image.Size, _cameraMatrix, _distCoeffs, _rvecs, _tvecs
+            ////    , CalibType.RationalModel, new MCvTermCriteria(30, 0.1));
+
+            //var undist_image = new Mat();
+            //CvInvoke.Undistort(image, undist_image, _cameraMatrix, _distCoeffs);
+            //ImageView.Source = GetImageSource(undist_image.ToBitmap(), image.Width, image.Height);
 
 
             SetupCapture(0);
