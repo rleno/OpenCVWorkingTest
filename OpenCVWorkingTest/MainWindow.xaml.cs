@@ -39,9 +39,16 @@ namespace OpenCVWorkingTest
 
         #region Camera Capture Variables
         private VideoCapture _capture = null; //Camera
-        //private bool _captureInProgress = false; //Variable to track camera state
-        //int CameraDevice = 0; //Variable to track camera device selected
-        //Video_Device[] WebCams; //List containing all the camera available
+                                              //private bool _captureInProgress = false; //Variable to track camera state
+                                              //int CameraDevice = 0; //Variable to track camera device selected
+                                              //Video_Device[] WebCams; //List containing all the camera available
+        #endregion
+
+        #region import
+
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
+
         #endregion
 
         private void SetupCapture(int Camera_Identifier)
@@ -69,27 +76,20 @@ namespace OpenCVWorkingTest
             }
         }
 
+
+        Mat frame = new Mat();
+
         private void ProcessFrame(object sender, EventArgs arg)
         {
-            //***If you want to access the image data the use the following method call***/
-            //Image<Bgr, Byte> frame = new Image<Bgr,byte>(_capture.RetrieveBgrFrame().ToBitmap());
-            Mat image = new Mat();
-            _capture.Read(image);
+            _capture.Read(frame);
 
-            Mat img_detected = Detect(image);
+            //Mat img_detected = Detect(image);
 
             Dispatcher.Invoke(()=>{
-                ImageView.Source = GetImageSource(img_detected.ToBitmap(), image.Width, image.Height);
+                ImageView.Source = GetImageSource(frame.ToBitmap(), frame.Width, frame.Height);
             });
-            //because we are using an autosize picturebox we need to do a thread safe update
+
             //DisplayImage(frame.ToBitmap());
-            //}
-            //else if (RetrieveGrayFrame.Checked)
-            //{
-            //    Image<Gray, Byte> frame = _capture.RetrieveGrayFrame();
-            //    //because we are using an autosize picturebox we need to do a thread safe update
-            //    DisplayImage(frame.ToBitmap());
-            //}
         }
 
         public MainWindow()
@@ -304,13 +304,25 @@ namespace OpenCVWorkingTest
 
         }
 
-        private ImageSource GetImageSource(System.Drawing.Bitmap bitmap, int width, int height)
+        private ImageSource GetImageSource(Bitmap bitmap, int width, int height)
         {
-            return System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                bitmap.GetHbitmap(),
+            BitmapSource source = null;
+            var hBitmap = bitmap.GetHbitmap();
+
+            try
+            {
+                source = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                hBitmap,
                 IntPtr.Zero,
                 Int32Rect.Empty,
                 BitmapSizeOptions.FromWidthAndHeight(width, height));
+            }
+            finally
+            {
+                DeleteObject(hBitmap);
+            }
+
+            return source;
         }
     }
 
