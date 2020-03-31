@@ -83,7 +83,7 @@ namespace OpenCVWorkingTest
         {
             _capture.Read(frame);
 
-            //Mat img_detected = Detect(image);
+            Mat img_detected = Detect(frame);
 
             Dispatcher.Invoke(()=>{
                 ImageView.Source = GetImageSource(frame.ToBitmap(), frame.Width, frame.Height);
