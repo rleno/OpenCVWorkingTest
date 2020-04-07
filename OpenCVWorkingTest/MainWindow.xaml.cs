@@ -16,21 +16,22 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
+using System.Timers;
+
 using Emgu.CV;
 using Emgu.CV.CvEnum;
 using Emgu.CV.Structure;
 using Emgu.CV.Util;
 
 using Rectangle = System.Drawing.Rectangle;
+using System.Diagnostics;
+using Emgu.CV.UI;
 //using UnityEngine;
 
 
 
 namespace OpenCVWorkingTest
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         readonly Mat _cameraMatrix = new Mat(3, 3, DepthType.Cv64F, 1);
@@ -67,6 +68,7 @@ namespace OpenCVWorkingTest
                 _capture.SetCaptureProperty(CapProp.FrameHeight, 720);
 
                 _capture.SetCaptureProperty(CapProp.FrameCount, 30);
+                _capture.FlipHorizontal = true;
 
                 _capture.ImageGrabbed += ProcessFrame;
             }
@@ -76,25 +78,82 @@ namespace OpenCVWorkingTest
             }
         }
 
+        private Mat Frame => _frames[_swap ? 0 : 1];
+        private Mat SwappedFrame => _frames[!_swap ? 0 : 1];
 
-        Mat frame = new Mat();
+        private bool _swap;
+        Mat [] _frames = new Mat[2] {new Mat(), new Mat()};
+        Timer _timer;
+        int _fps;
+        Stopwatch stopwatch = new Stopwatch();
+        Task _detectorTask = Task.CompletedTask;
+        Mat _image = new Mat();
+
+
+
+        Detector _detector = new Detector(new System.Drawing.Size(6, 4));
+
+        private void DisplayFrame(Mat frame)
+        {
+            Dispatcher.InvokeAsync(() => { ImageView.Image = frame; });
+        }
+
 
         private void ProcessFrame(object sender, EventArgs arg)
         {
-            _capture.Read(frame);
+            _fps++;
 
-            Mat img_detected = Detect(frame);
+            _capture.Retrieve(Frame);
 
-            Dispatcher.Invoke(()=>{
-                ImageView.Source = GetImageSource(frame.ToBitmap(), frame.Width, frame.Height);
-            });
+            if (_detectorTask.IsCompleted)
+            {
+                _detectorTask = _detector.Detect(Frame);
 
-            //DisplayImage(frame.ToBitmap());
+                _swap = !_swap;
+
+            }
+
+            DisplayFrame(Frame);
+
+            //            if (_task == null || _task.IsCompleted)
+            //                _task = Task.Run(() =>
+            //                {
+            //                    //_image = Detect(frame);
+            //                });
+            //else
+            //    Dispatcher.InvokeAsync(() => { ImageView.Image = frame; });
+
+            //Dispatcher.InvokeAsync(()=>{
+            //    stopwatch.Start();
+            //    ImageView.Source = GetImageSource(frame.ToBitmap(), frame.Width, frame.Height);
+            //    stopwatch.Stop();
+            //    Console.WriteLine(": " + stopwatch.ElapsedMilliseconds);
+            //    stopwatch.Reset();
+            //});
+
+
+            //Task.Run(() =>
+            //{
+            //    Mat img_detected = Detect(frame);
+
+            //    if (img_detected != null)
+            //        Dispatcher.Invoke(() =>
+            //        {
+            //            ImageView.Source = GetImageSource(img_detected.ToImage.ToBitmap(), frame.Width, frame.Height);
+            //        });
+            //});
         }
 
         public MainWindow()
         {
+            bool 
+
             InitializeComponent();
+#if DEBUG
+            ImageView.FunctionalMode = ImageBox.FunctionalModeOption.Everything;
+#else
+            ImageView.FunctionalMode = ImageBox.FunctionalModeOption.PanAndZoom;
+#endif
         }
 
         private Mat GenarateChessbosard()
@@ -299,9 +358,19 @@ namespace OpenCVWorkingTest
 
             SetupCapture(0);
             _capture.Start();
+
+            _timer = new Timer(1000);
+            _timer.Elapsed += _timer_Elapsed;
+            _timer.Start();
             //image.Save(@"image.bmp");
             //undist_image.Save(@"undist_image.bmp");
 
+        }
+
+        private void _timer_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            Console.WriteLine(_fps);
+            _fps = 0;
         }
 
         private ImageSource GetImageSource(Bitmap bitmap, int width, int height)
@@ -381,3 +450,34 @@ namespace OpenCVWorkingTest
         }
     }
 }
+
+//public override DocumentPage GetPage(int pageNumber)
+//{
+//    // Получить запрошенную страницу
+//    DocumentPage page = flowDocumentPaginator.GetPage(pageNumber);
+
+//    // Поместить страницу в объект Visual. После этого можно 
+//    // будет применять трансформации и добавлять другие элементы
+//    ContainerVisual newVisual = new ContainerVisual();
+//    newVisual.Children.Add(page.Visual);
+
+//    // Создать заголовок
+//    DrawingVisual header = new DrawingVisual();
+//    using (DrawingContext dc = header.RenderOpen())
+//    {
+//        Typeface typeface = new Typeface("Times New Roman");
+//        FormattedText text = new FormattedText("Страница " +
+//            (pageNumber + 1).ToString(), System.Globalization.CultureInfo.CurrentCulture,
+//            FlowDirection.LeftToRight, typeface, 14, Brushes.Black);
+
+//        // Оставить четверть дюйма пространства между краем страницы и текстом
+//        dc.DrawText(text, new Point(96 * 0.25, 96 * 0.25));
+//    }
+
+//    // Добавить заголовок к объекту Visual
+//    newVisual.Children.Add(header);
+
+//    // Поместить объект Visual в новую страницу
+//    DocumentPage newPage = new DocumentPage(newVisual);
+//    return newPage;
+//}

@@ -3,6 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:emgu="clr-namespace:Emgu.CV.UI;assembly=Emgu.CV.UI"
         xmlns:local="clr-namespace:OpenCVWorkingTest"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
@@ -13,11 +14,14 @@
     </Window.Resources>
     <Grid Background="DarkGray">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="200"/>
             <ColumnDefinition/>
         </Grid.ColumnDefinitions>
-        <Image Grid.Column="1" Name="ImageView" HorizontalAlignment="Right"/>
+        <!--<Image Grid.Column="1" Name="ImageView" HorizontalAlignment="Right"/>-->
 
+        <WindowsFormsHost Grid.Column="1" Width="1280" Height="720">
+            <emgu:ImageBox x:Name="ImageView" />
+        </WindowsFormsHost>
         <StackPanel>
         <StackPanel>
             <TextBlock x:Name="FX"/>
