@@ -146,8 +146,6 @@ namespace OpenCVWorkingTest
 
         public MainWindow()
         {
-            bool 
-
             InitializeComponent();
 #if DEBUG
             ImageView.FunctionalMode = ImageBox.FunctionalModeOption.Everything;
