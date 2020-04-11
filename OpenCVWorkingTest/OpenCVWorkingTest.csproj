@@ -90,7 +90,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Detector.cs" />
+    <Compile Include="Detectors\ChessboardDetector.cs" />
+    <Compile Include="Detectors\CirclesGridDetector.cs" />
+    <Compile Include="Detectors\Detector.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>

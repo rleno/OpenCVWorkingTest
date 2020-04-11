@@ -19,8 +19,9 @@
         </Grid.ColumnDefinitions>
         <!--<Image Grid.Column="1" Name="ImageView" HorizontalAlignment="Right"/>-->
 
-        <WindowsFormsHost Grid.Column="1" Width="1280" Height="720">
-            <emgu:ImageBox x:Name="ImageView" />
+        <WindowsFormsHost Grid.Column="1" x:Name="WindowsFormsHost" HorizontalAlignment="Stretch" VerticalAlignment="Stretch">
+            <emgu:ImageBox x:Name="ImageView" AutoSize="True"
+                           />
         </WindowsFormsHost>
         <StackPanel>
         <StackPanel>
@@ -36,6 +37,9 @@
         </StackPanel>
         </StackPanel>
         <Button Click="Button_Click" Width="100" Height="50" HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Margin="10"/>
+        <Button Click="ButtonBase_OnClick"  Width="100" Height="50" HorizontalAlignment="Left"
                 VerticalAlignment="Bottom"
                 Margin="10"/>
     </Grid></Window>

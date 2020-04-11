@@ -26,6 +26,8 @@ using Emgu.CV.Util;
 using Rectangle = System.Drawing.Rectangle;
 using System.Diagnostics;
 using Emgu.CV.UI;
+using OpenCVWorkingTest.Detectors;
+
 //using UnityEngine;
 
 
@@ -67,8 +69,8 @@ namespace OpenCVWorkingTest
                 _capture.SetCaptureProperty(CapProp.FrameWidth, 1280);
                 _capture.SetCaptureProperty(CapProp.FrameHeight, 720);
 
-                _capture.SetCaptureProperty(CapProp.FrameCount, 30);
-                _capture.FlipHorizontal = true;
+                _capture.SetCaptureProperty(CapProp.FrameCount, 25);
+                _capture.FlipHorizontal = false;
 
                 _capture.ImageGrabbed += ProcessFrame;
             }
@@ -78,11 +80,7 @@ namespace OpenCVWorkingTest
             }
         }
 
-        private Mat Frame => _frames[_swap ? 0 : 1];
-        private Mat SwappedFrame => _frames[!_swap ? 0 : 1];
 
-        private bool _swap;
-        Mat [] _frames = new Mat[2] {new Mat(), new Mat()};
         Timer _timer;
         int _fps;
         Stopwatch stopwatch = new Stopwatch();
@@ -91,29 +89,98 @@ namespace OpenCVWorkingTest
 
 
 
-        Detector _detector = new Detector(new System.Drawing.Size(6, 4));
+//        ChessboardDetector _detector = new ChessboardDetector(new System.Drawing.Size(6, 4));
+        CirclesGridDetector _detector = new CirclesGridDetector(new System.Drawing.Size(4, 11));
 
         private void DisplayFrame(Mat frame)
         {
             Dispatcher.InvokeAsync(() => { ImageView.Image = frame; });
         }
 
+        private class FrameBuffer
+        {
+            private readonly Mat[] _frame = new Mat[3] {
+                new Mat(), new Mat(), new Mat()
+            };
+
+            private readonly int[] _frameOrder = new int[2] { 0, 1 };
+            private readonly int[] _frameIndexes = new int[3] { 0, 1, 2 };
+
+            private int _detectingIndex = -1;
+
+            private bool _swap;
+
+            public Mat Frame
+            {
+                get
+                {
+                    return _frame[_frameOrder[_swap ? 1 : 0]];
+                }
+            }
+
+            public Mat DisplayFrame(bool completed)
+            {
+
+                if (completed) 
+                    return _frame[!_swap ? _frameOrder[1] : _frameOrder[0]];
+                else
+                {
+                    if (_frameOrder.Any(fo => fo == _detectingIndex))
+                        _frameOrder[!_swap ? 1 : 0] = _frameIndexes.First(i => i != _frameOrder[0] && i != _frameOrder[1]);
+
+                    return Frame;
+                }
+
+            }
+
+            public Mat FrameDetect {
+                get
+                {
+                    var index = _swap ? _frameOrder[1] : _frameOrder[0];
+
+                    _detectingIndex = index;
+
+                    return _frame[index];
+                }
+            }
+
+            public void Swap()
+            {
+                _swap = !_swap;
+            }
+        }
+
+        private readonly FrameBuffer _frameBuffer = new FrameBuffer();
+
+        private void ProcessFrame1(object sender, EventArgs arg)
+        {
+            _fps++;
+
+            _capture.Retrieve(_image);
+
+             _detector.Detect(_image).Wait();
+
+             DisplayFrame(_image);
+        }
 
         private void ProcessFrame(object sender, EventArgs arg)
         {
             _fps++;
 
-            _capture.Retrieve(Frame);
+            _capture.Retrieve(_frameBuffer.Frame);
 
-            if (_detectorTask.IsCompleted)
-            {
-                _detectorTask = _detector.Detect(Frame);
+            var completed = _detectorTask.IsCompleted;
+            
+            DisplayFrame(_frameBuffer.DisplayFrame(completed));
 
-                _swap = !_swap;
+            if (completed)
+                _detectorTask = _detector.Detect(_frameBuffer.FrameDetect);
 
-            }
+            _frameBuffer.Swap();
 
-            DisplayFrame(Frame);
+//            Debug.WriteLine("ID: " + _detectorTask.Id);
+
+
 
             //            if (_task == null || _task.IsCompleted)
             //                _task = Task.Run(() =>
@@ -390,6 +457,11 @@ namespace OpenCVWorkingTest
             }
 
             return source;
+        }
+
+        private void ButtonBase_OnClick(object sender, RoutedEventArgs e)
+        {
+            _detector.Terminate();
         }
     }
 
