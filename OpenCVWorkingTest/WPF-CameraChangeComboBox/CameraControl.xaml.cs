@@ -31,8 +31,50 @@ namespace Camera_EMGU_WPFSample
         {
             InitializeComponent();
 
-            Detector = new ChessboardDetector();
+            //Detector = new ChessboardDetector();
+            Detector = new ArucoDetector();
 
+            SetMatrix();
+        }
+
+        private void SetMatrix()
+        {
+            //var cMat = new double[,]
+            //{
+            //    {1.0017554539927537e+03,    .0,                         5.3714642465820737e+02},
+            //    {.0,                        1.0017554539927537e+03,     3.0522634021232267e+02},
+            //    {.0,                        .0,                         1.0}
+            //};
+
+            //for (int r = 0; r < 3; r++)
+            //    for (int c = 0; c < 3; c++)
+            //        Detector.cameraMatrix.SetValue(r, c, cMat[r, c]);
+
+            //for (int i = 0; i < 8; i++)
+            //    Detector.distCoeffs.SetValue(i, 0, 0);
+
+            //Detector.distCoeffs.SetValue(0, 0, -9.9898495516849192e-02);
+            //Detector.distCoeffs.SetValue(1, 0, 2.2626694964843341e-01);
+            //Detector.distCoeffs.SetValue(2, 0, -1.1544241181928370e-02);
+            //Detector.distCoeffs.SetValue(3, 0, -2.6699808935566056e-03);
+            //Detector.distCoeffs.SetValue(4, 0, -1.9438362201403153e-01);
+            var cMat = new double[,]
+    {
+                {1398.38,    .0,                         1082.4},
+                {.0,                        1398.38,     627.885},
+                {.0,                        .0,                         1.0}
+    };
+
+
+            for (int r = 0; r < 3; r++)
+                for (int c = 0; c < 3; c++)
+                    Detector.cameraMatrix.SetValue(r, c, cMat[r, c]);
+
+            for (int i = 0; i < 8; i++)
+                Detector.distCoeffs.SetValue(i, 0, 0);
+
+            Detector.distCoeffs.SetValue(0, 0, -0.175286);
+            Detector.distCoeffs.SetValue(1, 0, 0.0287032);
 
         }
 
